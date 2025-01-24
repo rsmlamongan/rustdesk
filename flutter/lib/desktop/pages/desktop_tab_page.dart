@@ -43,7 +43,8 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
   _DesktopTabPageState() {
     RemoteCountState.init();
     Get.put<DesktopTabController>(tabController);
-    tabController.add(TabInfo(
+    tabController.add(
+      TabInfo(
         key: kTabLabelHomePage,
         label: kTabLabelHomePage,
         selectedIcon: Icons.home_sharp,
@@ -51,7 +52,9 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
         closable: false,
         page: DesktopHomePage(
           key: const ValueKey(kTabLabelHomePage),
-        )));
+        ),
+      ),
+    );
     if (bind.isIncomingOnly()) {
       tabController.onSelected = (key) {
         if (key == kTabLabelHomePage) {
