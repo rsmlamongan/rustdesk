@@ -106,6 +106,8 @@ dependencies:
   device_info_plus: ^9.1.0
   qr_flutter: ^4.1.0
   extended_text: 14.0.0
+  r_get_ip: ^0.1.3
+  network_info_plus: ^6.1.3
 
 dev_dependencies:
   icons_launcher: ^2.0.4
@@ -121,14 +123,14 @@ dependency_overrides:
   
 # rerun: flutter pub run flutter_launcher_icons
 flutter_icons:
-  image_path: "../res/icon.png"
+  image_path: "assets/rsml.png"
   remove_alpha_ios: true
   android: true
   ios: true
   windows:
     generate: true
   macos:
-    image_path: "../res/mac-icon.png"
+    image_path: "assets/rsml.png"
     generate: true
   linux: true
   web:

@@ -18,7 +18,9 @@ import 'package:flutter_hbb/models/state_model.dart';
 import 'package:flutter_hbb/plugin/ui_manager.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:get/get.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:r_get_ip/r_get_ip.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
@@ -37,6 +39,18 @@ const borderColor = Color(0xFF2F65BA);
 class _DesktopHomePageState extends State<DesktopHomePage>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   final _leftPaneScrollController = ScrollController();
+
+  String? ipAddress;
+
+  Future<void> getIp() async {
+    if (ipAddress != null) return;
+    final info = NetworkInfo();
+    final result = await RGetIp.networkType;
+    final internal = await RGetIp.internalIP;
+    final external = await RGetIp.externalIP;
+    ipAddress = internal ?? external;
+    setState(() {});
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -91,6 +105,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       ),
       buildTip(context),
       if (!isOutgoingOnly) buildIDBoard(context),
+      const SizedBox(
+        height: 20,
+      ),
+      if (!isOutgoingOnly) buildIPBoard(context, ipAddress: ipAddress),
       // if (!isOutgoingOnly) buildPasswordBoard(context),
       FutureBuilder<Widget>(
         future: Future.value(
@@ -216,7 +234,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                                   ?.color
                                   ?.withOpacity(0.5)),
                         ).marginOnly(top: 5),
-                        buildPopupMenu(context)
                       ],
                     ),
                   ),
@@ -229,6 +246,72 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                       },
                       child: TextFormField(
                         controller: model.serverId,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.only(top: 10, bottom: 10),
+                        ),
+                        style: TextStyle(
+                          fontSize: 22,
+                        ),
+                      ).workaroundFreezeLinuxMint(),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  buildIPBoard(BuildContext context, {String? ipAddress}) {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 11),
+      height: 57,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Container(
+            width: 2,
+            decoration: const BoxDecoration(color: MyTheme.accent),
+          ).marginOnly(top: 5),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 7),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 25,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          translate("IP"),
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.color
+                                  ?.withOpacity(0.5)),
+                        ).marginOnly(top: 5),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: GestureDetector(
+                      onDoubleTap: () {
+                        Clipboard.setData(ClipboardData(text: ipAddress ?? ""));
+                        showToast(translate("Copied"));
+                      },
+                      child: TextFormField(
+                        controller:
+                            TextEditingController(text: ipAddress ?? ""),
                         readOnly: true,
                         decoration: InputDecoration(
                           border: InputBorder.none,
@@ -680,6 +763,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     super.initState();
     _updateTimer = periodic_immediate(const Duration(seconds: 1), () async {
       await gFFI.serverModel.fetchID();
+      await getIp();
       final error = await bind.mainGetError();
       if (systemError != error) {
         systemError = error;
